@@ -7,7 +7,7 @@ from cocotb.triggers import ClockCycles
 
 
 @cocotb.test()
-async def test_project(dut):
+async def test_loopback(dut):
     dut._log.info("Start")
 
     # Set the clock period to 10 us (100 KHz)
@@ -17,24 +17,38 @@ async def test_project(dut):
     # Reset
     dut._log.info("Reset")
     dut.ena.value = 1
+
+    # ui_in[0] == 0: Copy bidirectional pins to outputs
     dut.ui_in.value = 0
     dut.uio_in.value = 0
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    dut._log.info("Test project behavior")
+    for i in range(256):
+        dut.uio_in.value = i
+        await ClockCycles(dut.clk, 1)
+        assert dut.uo_out.value == i
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+@cocotb.test()
+async def test_counter(dut):
+    dut._log.info("Start")
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    # Set the clock period to 10 us (100 KHz)
+    clock = Clock(dut.clk, 10, units="us")
+    cocotb.start_soon(clock.start())
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    # ui_in[0] == 1: bidirectional outputs enabled, put a counter on both output and bidirectional pins
+    dut.ui_in.value = 1
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 2)
+
+    dut._log.info("Testing counter")
+    for i in range(256):
+        assert dut.uo_out.value == dut.uio_out.value
+        assert dut.uo_out.value == i
+        await ClockCycles(dut.clk, 1)

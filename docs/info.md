@@ -9,12 +9,11 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+If `sel` is high, then a counter is output on the output pins and the bidirectional pins (`data_o = counter_o = counter`).
+If `sel` is low, the bidirectional pins are mirrored to the output pins (`data_o` = `data_i`).
 
 ## How to test
 
-Explain how to use your project
+Set `sel` high and observe that the counter is output on the output pins (`data_o`) and the bidirectional pins (`counter_o`).
 
-## External hardware
-
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+Set `sel` low and observe that the bidirectional pins are mirrored to the output pins (`data_o` = `data_i`).
