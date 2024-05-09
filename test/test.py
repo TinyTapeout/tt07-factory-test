@@ -7,7 +7,7 @@ from cocotb.triggers import ClockCycles
 
 
 @cocotb.test()
-async def test_loopback(dut):
+async def test_xor(dut):
     dut._log.info("Start")
 
     # Set the clock period to 10 us (100 KHz)
@@ -18,7 +18,7 @@ async def test_loopback(dut):
     dut._log.info("Reset")
     dut.ena.value = 1
 
-    # ui_in[0] == 0: Copy bidirectional pins to outputs
+    # ui_in[0] == 0: Output is xor of ui_in and uio_in
     dut.ui_in.value = 0
     dut.uio_in.value = 0
     dut.rst_n.value = 0
@@ -29,6 +29,11 @@ async def test_loopback(dut):
         dut.uio_in.value = i
         await ClockCycles(dut.clk, 1)
         assert dut.uo_out.value == i
+
+    for i in range(127):
+        dut.ui_in.value = i << 1
+        await ClockCycles(dut.clk, 1)
+        assert dut.uo_out.value == (i << 1) ^ 255
 
 
 @cocotb.test()
@@ -52,3 +57,13 @@ async def test_counter(dut):
         assert dut.uo_out.value == dut.uio_out.value
         assert dut.uo_out.value == i
         await ClockCycles(dut.clk, 1)
+
+    dut._log.info("Testing reset")
+    for i in range(5):
+        assert dut.uo_out.value == i
+        await ClockCycles(dut.clk, 1)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 2)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 1)
+    assert dut.uo_out.value == 0
