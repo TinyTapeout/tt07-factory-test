@@ -30,9 +30,9 @@ module tt_um_factory_test (
     if (~rst_n_i) cnt <= 0;
     else cnt <= cnt + 1;
 
-  assign uo_out  = ui_in[0] ? cnt : (ui_in ^ uio_in);
+  assign uo_out  = ~rst_n ? ui_in : ui_in[0] ? cnt : uio_in;
   assign uio_out = ui_in[0] ? cnt : 8'h00;
-  assign uio_oe  = ui_in[0] ? 8'hff : 8'h00;
+  assign uio_oe  = rst_n && ui_in[0] ? 8'hff : 8'h00;
 
   // avoid linter warning about unused pins:
   wire _unused_pins = ena;
